@@ -86,12 +86,14 @@ impl PrivDrop {
     fn preload() -> Result<(), PrivDropError> {
         let c_locale = CString::new("C").unwrap();
         unsafe {
-            libc::strerror(1);
+            let mut buf = [0 as libc::c_char; 8];
+            libc::strerror_r(1, buf.as_mut_ptr(), buf.len());
             libc::setlocale(libc::LC_CTYPE, c_locale.as_ptr());
             libc::setlocale(libc::LC_COLLATE, c_locale.as_ptr());
             let mut now: libc::time_t = 0;
+            let mut tm: libc::tm = std::mem::zeroed();
             libc::time(&mut now);
-            libc::localtime(&now);
+            libc::localtime_r(&now, &mut tm);
         }
         Ok(())
     }
